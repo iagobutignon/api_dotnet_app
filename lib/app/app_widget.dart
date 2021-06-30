@@ -1,3 +1,6 @@
+import 'package:api_dotnet_app/app/controllers/address_controller.dart';
+import 'package:api_dotnet_app/app/controllers/customer_controller.dart';
+import 'package:api_dotnet_app/app/views/customer/customer_view.dart';
 import 'package:api_dotnet_app/app/views/customers/customers_view.dart';
 import 'package:api_dotnet_app/shared/themes/default_theme.dart';
 import 'package:api_dotnet_app/shared/utils/routes.dart';
@@ -15,6 +18,8 @@ class AppWidget extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => UserController()),
+        ChangeNotifierProvider(create: (_) => CustomerController()),
+        ChangeNotifierProvider(create: (_) => AddressController()),
       ],
       child: Builder(builder: (context) {
         UserController userController =
@@ -33,6 +38,7 @@ class AppWidget extends StatelessWidget {
           locale: Locale('pt', 'BR'),
           routes: {
             Routes.register: (ctx) => RegisterView(),
+            Routes.customer: (ctx) => CustomerView(),
           },
         );
       }),
