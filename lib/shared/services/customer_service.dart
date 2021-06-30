@@ -25,20 +25,13 @@ class CustomerService {
   }
 
   Future<void> insert() async {
-    Provider.of<CustomerController>(_context, listen: false).customerEditing =
-        CustomerModel(
-      id: '',
-      name: '',
-      cpfCnpj: '',
-      type: '',
-      birthDate: '',
-      active: true,
-      createdAt: '',
-      updatedAt: '',
-    );
+    CustomerController controller =
+        Provider.of<CustomerController>(_context, listen: false);
+
+    controller.customerEditing = CustomerModel(addresses: []);
+    controller.newCustomer = true;
 
     var edited = await Navigator.of(_context).pushNamed(Routes.customer);
-    print(edited);
     if (edited == null) {
       return;
     }
@@ -46,19 +39,6 @@ class CustomerService {
     CustomerModel customerModel =
         Provider.of<CustomerController>(_context, listen: false)
             .customerEditing;
-    customerModel.addresses =
-        Provider.of<AddressController>(_context, listen: false).addresses;
-
-    edited = {
-      'name': customerModel.name,
-      'cpfCnpj': customerModel.cpfCnpj,
-      'type': customerModel.type,
-      'birthDate': customerModel.birthDate,
-      'addresses':
-          customerModel.addresses.map((address) => address.toJson()).toList(),
-    };
-
-    print(edited);
 
     final _url = Uri.parse('${Endpoints.customer_url}');
     final response = await http.post(
@@ -67,23 +47,27 @@ class CustomerService {
         HttpHeaders.authorizationHeader: basicAuth,
         'Content-Type': 'application/json; charset=UTF-8',
       },
-      body: jsonEncode(edited),
+      body: jsonEncode(customerModel.toJson()),
     );
-
-    print(response.statusCode);
 
     refresh();
   }
 
   Future<void> edit(CustomerModel customer) async {
-    Provider.of<CustomerController>(_context, listen: false).customerEditing =
-        customer;
+    CustomerController controller =
+        Provider.of<CustomerController>(_context, listen: false);
+
+    controller.customerEditing = customer;
+    controller.newCustomer = false;
 
     var edited = await Navigator.of(_context).pushNamed(Routes.customer);
-
     if (edited == null) {
       return;
     }
+
+    CustomerModel customerModel =
+        Provider.of<CustomerController>(_context, listen: false)
+            .customerEditing;
 
     final _url = Uri.parse('${Endpoints.customer_url}/${customer.id}');
     final response = await http.put(
@@ -92,8 +76,44 @@ class CustomerService {
         HttpHeaders.authorizationHeader: basicAuth,
         'Content-Type': 'application/json; charset=UTF-8',
       },
-      body: jsonEncode(edited),
+      body: jsonEncode(customerModel.toJson()),
     );
+
+    final userId = customerModel.id;
+    customerModel.addresses.forEach((address) async {
+      if (address.id.isEmpty) {
+        final addressRequest = address.toJson();
+        addressRequest['customerId'] = userId;
+
+        final response = await http.post(
+          Uri.parse('${Endpoints.address_url}'),
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            'Content-Type': 'application/json; charset=UTF-8',
+          },
+          body: jsonEncode(addressRequest),
+        );
+      } else {
+        final response = await http.put(
+          Uri.parse('${Endpoints.address_url}/${address.id}'),
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            'Content-Type': 'application/json; charset=UTF-8',
+          },
+          body: jsonEncode(address.toJson()),
+        );
+      }
+    });
+
+    controller.removeAddress.forEach((id) async {
+      final response = await http.delete(
+        Uri.parse('${Endpoints.address_url}/$id'),
+        headers: {
+          HttpHeaders.authorizationHeader: basicAuth,
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+    });
 
     refresh();
   }
@@ -121,17 +141,10 @@ class CustomerService {
     if (response.statusCode == HttpStatus.ok) {
       final List body = jsonDecode(response.body);
       final List<CustomerModel> customers = [];
-      body.forEach((c) {
-        customers.add(CustomerModel(
-          id: c['id'] ?? '',
-          name: c['name'] ?? '',
-          cpfCnpj: c['cpfCnpj'] ?? '',
-          type: c['type'],
-          birthDate: c['birthDate'] ?? '',
-          active: c['active'] ?? '',
-          updatedAt: c['updatedAt'] ?? '',
-          createdAt: c['createdAt'] ?? '',
-        ));
+      body.forEach((customer) {
+        CustomerModel customerModel = CustomerModel();
+        customerModel.fromJson(customer);
+        customers.add(customerModel);
       });
 
       Provider.of<CustomerController>(_context, listen: false).customers =

@@ -2,13 +2,7 @@ import 'package:api_dotnet_app/app/models/user_model.dart';
 import 'package:flutter/cupertino.dart';
 
 class UserController with ChangeNotifier {
-  UserModel _user = UserModel(
-    id: '',
-    userName: '',
-    password: '',
-    createdAt: '',
-    updatedAt: '',
-  );
+  UserModel _user = UserModel();
 
   UserModel get user => _user;
 

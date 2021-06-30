@@ -3,5 +3,6 @@ class Endpoints {
 
   static const user_url = '$url_api/user';
   static const customer_url = '$url_api/customer';
+  static const address_url = '$url_api/address';
   static const via_cep = 'https://viacep.com.br/ws';
 }

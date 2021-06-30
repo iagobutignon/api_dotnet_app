@@ -38,7 +38,8 @@ class _CustomersViewState extends State<CustomersView> {
       itemBuilder: (context, index) {
         return ListTile(
           title: Text(controller.customers[index].name),
-          subtitle: Text(controller.customers[index].cpfCnpj),
+          subtitle: Text(
+              'Endereços: ${controller.customers[index].addresses.length}'),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
