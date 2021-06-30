@@ -26,7 +26,7 @@ class _CustomersViewState extends State<CustomersView> {
 
   Future<void> _remove(CustomerModel customer) async {
     print(customer.id);
-    CustomerService(context).remove(customer.id);
+    CustomerService(context).delete(customer.id);
   }
 
   ListView _customerList() {

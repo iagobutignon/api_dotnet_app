@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:api_dotnet_app/app/controllers/address_controller.dart';
 import 'package:api_dotnet_app/app/controllers/customer_controller.dart';
 import 'package:api_dotnet_app/app/controllers/user_controller.dart';
 import 'package:api_dotnet_app/app/models/customer_model.dart';
+import 'package:api_dotnet_app/shared/services/address_service.dart';
 import 'package:api_dotnet_app/shared/utils/endpoints.dart';
 import 'package:api_dotnet_app/shared/utils/routes.dart';
 import 'package:flutter/material.dart';
@@ -79,46 +79,13 @@ class CustomerService {
       body: jsonEncode(customerModel.toJson()),
     );
 
-    final userId = customerModel.id;
-    customerModel.addresses.forEach((address) async {
-      if (address.id.isEmpty) {
-        final addressRequest = address.toJson();
-        addressRequest['customerId'] = userId;
-
-        final response = await http.post(
-          Uri.parse('${Endpoints.address_url}'),
-          headers: {
-            HttpHeaders.authorizationHeader: basicAuth,
-            'Content-Type': 'application/json; charset=UTF-8',
-          },
-          body: jsonEncode(addressRequest),
-        );
-      } else {
-        final response = await http.put(
-          Uri.parse('${Endpoints.address_url}/${address.id}'),
-          headers: {
-            HttpHeaders.authorizationHeader: basicAuth,
-            'Content-Type': 'application/json; charset=UTF-8',
-          },
-          body: jsonEncode(address.toJson()),
-        );
-      }
-    });
-
-    controller.removeAddress.forEach((id) async {
-      final response = await http.delete(
-        Uri.parse('${Endpoints.address_url}/$id'),
-        headers: {
-          HttpHeaders.authorizationHeader: basicAuth,
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-      );
-    });
+    await AddressService(_context)
+        .save(customerModel.id, customerModel.addresses);
 
     refresh();
   }
 
-  Future<void> remove(String id) async {
+  Future<void> delete(String id) async {
     final _url = Uri.parse('${Endpoints.customer_url}/$id');
     await http.delete(
       _url,

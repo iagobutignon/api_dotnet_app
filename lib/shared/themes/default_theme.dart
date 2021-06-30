@@ -17,11 +17,10 @@ ThemeData defaultTheme = ThemeData(
       ),
     ),
   ),
-  cardTheme: CardTheme(
-    shape: RoundedRectangleBorder(
-      borderRadius: const BorderRadius.all(
-        Radius.circular(10),
-      ),
+  outlinedButtonTheme: OutlinedButtonThemeData(
+    style: ButtonStyle(
+      backgroundColor: MaterialStateProperty.all<Color>(Colors.blue),
+      foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
     ),
   ),
 );
